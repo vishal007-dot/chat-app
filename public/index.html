@@ -2,7 +2,9 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp UI</title>
+<title>WhatsApp Clone</title>
+
+<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/733/733585.png">
 
 <style>
 body {
@@ -30,16 +32,10 @@ body {
   margin-right:10px;
 }
 
-.header .name {
-  font-weight:600;
-}
+.name {font-weight:600;}
+.status {font-size:12px;opacity:0.8;}
 
-.header .status {
-  font-size:12px;
-  opacity:0.8;
-}
-
-/* CHAT AREA */
+/* CHAT */
 #chat {
   flex:1;
   padding:10px;
@@ -48,9 +44,9 @@ body {
   flex-direction:column;
 }
 
-/* MESSAGE BUBBLES */
+/* MESSAGE */
 .msg {
-  max-width:70%;
+  max-width:75%;
   padding:8px 10px;
   margin:5px;
   border-radius:8px;
@@ -68,25 +64,28 @@ body {
   align-self:flex-start;
 }
 
-/* TIME + TICK */
 .time {
   font-size:10px;
   opacity:0.6;
   text-align:right;
-  margin-top:3px;
 }
 
 .tick {
   font-size:10px;
-  margin-left:5px;
   color:#4fc3f7;
 }
 
-/* INPUT AREA */
+/* INPUT */
 .input-area {
   display:flex;
+  align-items:center;
   padding:8px;
   background:#f0f0f0;
+}
+
+.icon {
+  font-size:20px;
+  margin:0 5px;
 }
 
 input {
@@ -97,15 +96,15 @@ input {
   outline:none;
 }
 
-button {
+.send-btn {
   width:45px;
   height:45px;
-  margin-left:8px;
   background:#25D366;
   border:none;
   border-radius:50%;
-  color:white;
-  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 </style>
 
@@ -113,22 +112,27 @@ button {
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <img src="https://i.pravatar.cc/150?img=3">
   <div>
     <div class="name">Chat Room</div>
-    <div class="status" id="status">online</div>
+    <div class="status">online</div>
   </div>
 </div>
 
-<!-- CHAT -->
 <div id="chat"></div>
 
-<!-- INPUT -->
 <div class="input-area">
-  <input id="message" placeholder="Type a message">
-  <button onclick="send()">➤</button>
+  <span class="icon">😊</span>
+  <input id="message" placeholder="Type a message" onkeydown="enterSend(event)">
+  <span class="icon">📎</span>
+  <span class="icon">🎤</span>
+
+  <button onclick="send()" class="send-btn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z"/>
+    </svg>
+  </button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -138,7 +142,12 @@ const socket = io();
 let username = prompt("Enter your name:");
 socket.emit("join", username);
 
-// SEND MESSAGE
+function enterSend(e){
+  if(e.key === "Enter"){
+    send();
+  }
+}
+
 function send(){
   const input = document.getElementById("message");
 
@@ -148,13 +157,13 @@ function send(){
   }
 }
 
-// RECEIVE MESSAGE
 socket.on("chat message",(data)=>{
   const div=document.createElement("div");
 
   div.className = data.user === username ? "msg me" : "msg other";
 
   div.innerHTML = `
+    <b>${data.user}</b><br>
     ${data.text}
     <div class="time">
       ${data.time} <span class="tick">✔✔</span>
