@@ -1,74 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat App</title>
 
 <style>
 body {
   margin:0;
   font-family:Arial;
-  display:flex;
-}
-
-/* Sidebar */
-#users {
-  width:25%;
   background:#111;
-  color:white;
-  padding:10px;
-}
-
-/* Chat */
-#chat-container {
-  width:75%;
+  height:100vh;
   display:flex;
   flex-direction:column;
 }
 
-#chat {
-  flex:1;
-  padding:10px;
-  overflow-y:auto;
-  background:#0f172a;
+/* Header */
+.header {
+  background:#075E54;
+  color:white;
+  padding:15px;
+  font-weight:bold;
 }
 
+/* Chat */
+#chat {
+  flex:1;
+  overflow-y:auto;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Messages */
 .msg {
-  padding:8px;
+  padding:10px;
   margin:5px;
   border-radius:10px;
-  max-width:60%;
+  max-width:70%;
 }
 
 .me {
-  background:#25D366;
-  margin-left:auto;
-  color:black;
+  background:#DCF8C6;
+  align-self:flex-end;
 }
 
 .other {
-  background:#333;
-  color:white;
-}
-
-#typing {
-  font-size:12px;
-  padding:5px;
+  background:#fff;
+  align-self:flex-start;
 }
 
 /* Input */
 #input-area {
   display:flex;
+  padding:10px;
+  background:#222;
 }
 
 input {
   flex:1;
   padding:10px;
+  border-radius:20px;
+  border:none;
+  outline:none;
 }
 
 button {
-  padding:10px;
-  background:#38bdf8;
+  margin-left:10px;
+  padding:10px 15px;
   border:none;
+  background:#25D366;
+  color:white;
+  border-radius:50%;
 }
 </style>
 
@@ -76,23 +78,13 @@ button {
 
 <body>
 
-<!-- USERS -->
-<div id="users">
-  <h3>Online Users</h3>
-  <ul id="user-list"></ul>
-</div>
+<div class="header">💬 Chat App</div>
 
-<!-- CHAT -->
-<div id="chat-container">
+<div id="chat"></div>
 
-  <div id="chat"></div>
-  <div id="typing"></div>
-
-  <div id="input-area">
-    <input id="message" placeholder="Type message..." oninput="typing()">
-    <button onclick="send()">Send</button>
-  </div>
-
+<div id="input-area">
+  <input id="message" placeholder="Type a message">
+  <button onclick="send()">➤</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -102,49 +94,26 @@ const socket = io();
 let username = prompt("Enter your name:");
 socket.emit("join", username);
 
-// send message
 function send(){
   const input = document.getElementById("message");
 
-  if(input.value){
+  if(input.value.trim() !== ""){
     socket.emit("chat message", input.value);
     input.value="";
   }
 }
 
-// typing
-function typing(){
-  socket.emit("typing");
-}
-
-// receive message
 socket.on("chat message",(data)=>{
   const div=document.createElement("div");
 
   div.className = data.user === username ? "msg me" : "msg other";
-  div.innerText = data.user + ": " + data.text;
+  div.innerText = data.text;
 
   document.getElementById("chat").appendChild(div);
-});
 
-// users list
-socket.on("users",(list)=>{
-  const ul = document.getElementById("user-list");
-  ul.innerHTML="";
-  list.forEach(u=>{
-    const li=document.createElement("li");
-    li.innerText=u;
-    ul.appendChild(li);
-  });
-});
-
-// typing show
-socket.on("typing",(msg)=>{
-  document.getElementById("typing").innerText=msg;
-
-  setTimeout(()=>{
-    document.getElementById("typing").innerText="";
-  },1000);
+  // auto scroll
+  document.getElementById("chat").scrollTop =
+    document.getElementById("chat").scrollHeight;
 });
 
 </script>
