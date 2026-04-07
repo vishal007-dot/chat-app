@@ -1,7 +1,7 @@
 {
   "name": "chat-app",
   "version": "1.0.0",
-  "description": "Advanced real-time chat app with users and typing indicator",
+  "description": "WhatsApp Pro Chat Application with real-time features",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
