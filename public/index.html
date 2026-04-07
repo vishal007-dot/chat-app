@@ -2,47 +2,133 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp Clone</title>
+<title>WhatsApp UI</title>
 
 <style>
-body {margin:0;font-family:Arial;background:#ece5dd;height:100vh;display:flex;flex-direction:column;}
+body {
+  margin:0;
+  font-family:system-ui;
+  background:#e5ddd5;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
 
-.header {background:#075E54;color:white;padding:10px;display:flex;align-items:center;}
-.header img {width:35px;height:35px;border-radius:50%;margin-right:10px;}
-.status {font-size:12px;}
+/* HEADER */
+.header {
+  background:#075E54;
+  color:white;
+  padding:10px;
+  display:flex;
+  align-items:center;
+}
 
-#chat {flex:1;padding:10px;overflow-y:auto;display:flex;flex-direction:column;}
+.header img {
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  margin-right:10px;
+}
 
-.msg {max-width:70%;padding:10px;margin:5px;border-radius:10px;font-size:14px;position:relative;}
-.me {background:#dcf8c6;align-self:flex-end;}
-.other {background:white;}
+.header .name {
+  font-weight:600;
+}
 
-.time {font-size:10px;opacity:0.6;margin-top:3px;}
-.tick {font-size:10px;position:absolute;bottom:5px;right:8px;}
+.header .status {
+  font-size:12px;
+  opacity:0.8;
+}
 
-#input-area {display:flex;padding:8px;background:#f0f0f0;}
-input {flex:1;padding:10px;border-radius:20px;border:none;}
+/* CHAT AREA */
+#chat {
+  flex:1;
+  padding:10px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
 
-.send-btn {width:50px;height:50px;margin-left:8px;background:#25D366;color:white;border:none;border-radius:50%;font-size:18px;}
+/* MESSAGE BUBBLES */
+.msg {
+  max-width:70%;
+  padding:8px 10px;
+  margin:5px;
+  border-radius:8px;
+  position:relative;
+  font-size:14px;
+}
+
+.me {
+  background:#d9fdd3;
+  align-self:flex-end;
+}
+
+.other {
+  background:white;
+  align-self:flex-start;
+}
+
+/* TIME + TICK */
+.time {
+  font-size:10px;
+  opacity:0.6;
+  text-align:right;
+  margin-top:3px;
+}
+
+.tick {
+  font-size:10px;
+  margin-left:5px;
+  color:#4fc3f7;
+}
+
+/* INPUT AREA */
+.input-area {
+  display:flex;
+  padding:8px;
+  background:#f0f0f0;
+}
+
+input {
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:none;
+  outline:none;
+}
+
+button {
+  width:45px;
+  height:45px;
+  margin-left:8px;
+  background:#25D366;
+  border:none;
+  border-radius:50%;
+  color:white;
+  font-size:18px;
+}
 </style>
 
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
-  <img src="https://i.pravatar.cc/150?img=5">
+  <img src="https://i.pravatar.cc/150?img=3">
   <div>
-    <div>Chat Room</div>
+    <div class="name">Chat Room</div>
     <div class="status" id="status">online</div>
   </div>
 </div>
 
+<!-- CHAT -->
 <div id="chat"></div>
 
-<div id="input-area">
-  <input id="message" placeholder="Type message...">
-  <button onclick="send()" class="send-btn">➤</button>
+<!-- INPUT -->
+<div class="input-area">
+  <input id="message" placeholder="Type a message">
+  <button onclick="send()">➤</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -52,47 +138,31 @@ const socket = io();
 let username = prompt("Enter your name:");
 socket.emit("join", username);
 
+// SEND MESSAGE
 function send(){
   const input = document.getElementById("message");
 
-  if(input.value){
+  if(input.value.trim()){
     socket.emit("chat message", input.value);
     input.value="";
   }
 }
 
+// RECEIVE MESSAGE
 socket.on("chat message",(data)=>{
   const div=document.createElement("div");
 
   div.className = data.user === username ? "msg me" : "msg other";
 
   div.innerHTML = `
-    <b>${data.user}</b><br>
     ${data.text}
-    <div class="time">${data.time}</div>
-    <span class="tick">✔</span>
+    <div class="time">
+      ${data.time} <span class="tick">✔✔</span>
+    </div>
   `;
 
   document.getElementById("chat").appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-
-  socket.emit("seen", username);
-});
-
-socket.on("seen update",()=>{
-  document.querySelectorAll(".tick").forEach(t=>{
-    t.innerText="✔✔";
-    t.style.color="blue";
-  });
-});
-
-socket.on("status",(msg)=>{
-  document.getElementById("status").innerText = msg;
-});
-
-socket.on("last seen",(data)=>{
-  document.getElementById("status").innerText =
-    "last seen at " + data.time;
 });
 
 </script>
