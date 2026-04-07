@@ -2,22 +2,107 @@
 <html>
 <head>
 <title>Chat App</title>
+
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  display:flex;
+}
+
+/* Sidebar */
+#users {
+  width:25%;
+  background:#111;
+  color:white;
+  padding:10px;
+}
+
+/* Chat */
+#chat-container {
+  width:75%;
+  display:flex;
+  flex-direction:column;
+}
+
+#chat {
+  flex:1;
+  padding:10px;
+  overflow-y:auto;
+  background:#0f172a;
+}
+
+.msg {
+  padding:8px;
+  margin:5px;
+  border-radius:10px;
+  max-width:60%;
+}
+
+.me {
+  background:#25D366;
+  margin-left:auto;
+  color:black;
+}
+
+.other {
+  background:#333;
+  color:white;
+}
+
+#typing {
+  font-size:12px;
+  padding:5px;
+}
+
+/* Input */
+#input-area {
+  display:flex;
+}
+
+input {
+  flex:1;
+  padding:10px;
+}
+
+button {
+  padding:10px;
+  background:#38bdf8;
+  border:none;
+}
+</style>
+
 </head>
 
 <body>
 
-<h2>Chat App</h2>
+<!-- USERS -->
+<div id="users">
+  <h3>Online Users</h3>
+  <ul id="user-list"></ul>
+</div>
 
-<div id="chat"></div>
+<!-- CHAT -->
+<div id="chat-container">
 
-<input id="message">
-<button onclick="send()">Send</button>
+  <div id="chat"></div>
+  <div id="typing"></div>
+
+  <div id="input-area">
+    <input id="message" placeholder="Type message..." oninput="typing()">
+    <button onclick="send()">Send</button>
+  </div>
+
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 
 const socket = io();
+let username = prompt("Enter your name:");
+socket.emit("join", username);
 
+// send message
 function send(){
   const input = document.getElementById("message");
 
@@ -27,10 +112,39 @@ function send(){
   }
 }
 
-socket.on("chat message",(msg)=>{
+// typing
+function typing(){
+  socket.emit("typing");
+}
+
+// receive message
+socket.on("chat message",(data)=>{
   const div=document.createElement("div");
-  div.innerText=msg;
+
+  div.className = data.user === username ? "msg me" : "msg other";
+  div.innerText = data.user + ": " + data.text;
+
   document.getElementById("chat").appendChild(div);
+});
+
+// users list
+socket.on("users",(list)=>{
+  const ul = document.getElementById("user-list");
+  ul.innerHTML="";
+  list.forEach(u=>{
+    const li=document.createElement("li");
+    li.innerText=u;
+    ul.appendChild(li);
+  });
+});
+
+// typing show
+socket.on("typing",(msg)=>{
+  document.getElementById("typing").innerText=msg;
+
+  setTimeout(()=>{
+    document.getElementById("typing").innerText="";
+  },1000);
 });
 
 </script>
