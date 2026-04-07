@@ -2,119 +2,48 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp Clone</title>
+<title>WhatsApp Pro</title>
 
 <style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#ece5dd;
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+body {margin:0;font-family:Arial;background:#ece5dd;height:100vh;display:flex;flex-direction:column;}
 
-/* HEADER */
-.header {
-  background:#075E54;
-  color:white;
-  padding:10px;
-  display:flex;
-  align-items:center;
-}
+.header {background:#075E54;color:white;padding:10px;display:flex;align-items:center;}
+.header img {width:35px;height:35px;border-radius:50%;margin-right:10px;}
+.status {font-size:12px;}
 
-.header img {
-  width:35px;
-  height:35px;
-  border-radius:50%;
-  margin-right:10px;
-}
+#chat {flex:1;padding:10px;overflow-y:auto;display:flex;flex-direction:column;}
 
-.header .name {
-  font-size:16px;
-  font-weight:bold;
-}
+.msg {max-width:70%;padding:10px;margin:5px;border-radius:10px;font-size:14px;position:relative;}
+.me {background:#dcf8c6;align-self:flex-end;}
+.other {background:white;}
 
-.header .status {
-  font-size:12px;
-  opacity:0.8;
-}
+.tick {font-size:10px;position:absolute;bottom:3px;right:8px;}
 
-/* CHAT AREA */
-#chat {
-  flex:1;
-  padding:10px;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-}
+#typing {font-size:12px;padding:5px;color:gray;}
 
-/* MESSAGES */
-.msg {
-  max-width:70%;
-  padding:10px;
-  margin:5px;
-  border-radius:10px;
-  font-size:14px;
-}
+#input-area {display:flex;padding:8px;background:#f0f0f0;}
+input {flex:1;padding:10px;border-radius:20px;border:none;}
 
-.me {
-  background:#dcf8c6;
-  align-self:flex-end;
-}
-
-.other {
-  background:white;
-  align-self:flex-start;
-}
-
-/* INPUT AREA */
-#input-area {
-  display:flex;
-  padding:8px;
-  background:#f0f0f0;
-  align-items:center;
-}
-
-input {
-  flex:1;
-  padding:10px;
-  border-radius:20px;
-  border:none;
-  outline:none;
-}
-
-.send-btn {
-  width:50px;
-  height:50px;
-  margin-left:8px;
-  background:#25D366;
-  color:white;
-  border:none;
-  border-radius:50%;
-  font-size:20px;
-}
+.send-btn {width:50px;height:50px;margin-left:8px;background:#25D366;color:white;border:none;border-radius:50%;font-size:18px;}
 </style>
 
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
-  <img src="https://i.pravatar.cc/150?img=3">
+  <img src="https://i.pravatar.cc/150?img=5">
   <div>
-    <div class="name">Chat Room</div>
-    <div class="status">online</div>
+    <div>Chat Room</div>
+    <div class="status" id="status">online</div>
   </div>
 </div>
 
-<!-- CHAT -->
 <div id="chat"></div>
+<div id="typing"></div>
 
-<!-- INPUT -->
 <div id="input-area">
-  <input id="message" placeholder="Type a message">
+  <input id="message" placeholder="Type message..." oninput="typing()">
   <button onclick="send()" class="send-btn">➤</button>
 </div>
 
@@ -125,28 +54,39 @@ const socket = io();
 let username = prompt("Enter your name:");
 socket.emit("join", username);
 
-// SEND MESSAGE
 function send(){
   const input = document.getElementById("message");
 
-  if(input.value.trim() !== ""){
+  if(input.value){
     socket.emit("chat message", input.value);
     input.value="";
   }
 }
 
-// RECEIVE MESSAGE
+function typing(){
+  socket.emit("typing");
+}
+
 socket.on("chat message",(data)=>{
   const div=document.createElement("div");
 
   div.className = data.user === username ? "msg me" : "msg other";
-  div.innerText = data.text;
+  div.innerHTML = data.text + "<span class='tick'>✔✔</span>";
 
   document.getElementById("chat").appendChild(div);
+  document.getElementById("chat").scrollTop = chat.scrollHeight;
 
-  // auto scroll
-  document.getElementById("chat").scrollTop =
-    document.getElementById("chat").scrollHeight;
+  socket.emit("seen");
+});
+
+socket.on("status",(msg)=>{
+  document.getElementById("status").innerText = msg;
+});
+
+socket.on("typing",(msg)=>{
+  document.getElementById("typing").innerText = msg;
+
+  setTimeout(()=>{document.getElementById("typing").innerText="";},1000);
 });
 
 </script>
