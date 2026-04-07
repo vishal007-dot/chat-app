@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp Pro</title>
+<title>WhatsApp Clone</title>
 
 <style>
 body {margin:0;font-family:Arial;background:#ece5dd;height:100vh;display:flex;flex-direction:column;}
@@ -17,9 +17,8 @@ body {margin:0;font-family:Arial;background:#ece5dd;height:100vh;display:flex;fl
 .me {background:#dcf8c6;align-self:flex-end;}
 .other {background:white;}
 
-.tick {font-size:10px;position:absolute;bottom:3px;right:8px;}
-
-#typing {font-size:12px;padding:5px;color:gray;}
+.time {font-size:10px;opacity:0.6;margin-top:3px;}
+.tick {font-size:10px;position:absolute;bottom:5px;right:8px;}
 
 #input-area {display:flex;padding:8px;background:#f0f0f0;}
 input {flex:1;padding:10px;border-radius:20px;border:none;}
@@ -40,10 +39,9 @@ input {flex:1;padding:10px;border-radius:20px;border:none;}
 </div>
 
 <div id="chat"></div>
-<div id="typing"></div>
 
 <div id="input-area">
-  <input id="message" placeholder="Type message..." oninput="typing()">
+  <input id="message" placeholder="Type message...">
   <button onclick="send()" class="send-btn">➤</button>
 </div>
 
@@ -63,30 +61,38 @@ function send(){
   }
 }
 
-function typing(){
-  socket.emit("typing");
-}
-
 socket.on("chat message",(data)=>{
   const div=document.createElement("div");
 
   div.className = data.user === username ? "msg me" : "msg other";
-  div.innerHTML = data.text + "<span class='tick'>✔✔</span>";
+
+  div.innerHTML = `
+    <b>${data.user}</b><br>
+    ${data.text}
+    <div class="time">${data.time}</div>
+    <span class="tick">✔</span>
+  `;
 
   document.getElementById("chat").appendChild(div);
-  document.getElementById("chat").scrollTop = chat.scrollHeight;
+  chat.scrollTop = chat.scrollHeight;
 
-  socket.emit("seen");
+  socket.emit("seen", username);
+});
+
+socket.on("seen update",()=>{
+  document.querySelectorAll(".tick").forEach(t=>{
+    t.innerText="✔✔";
+    t.style.color="blue";
+  });
 });
 
 socket.on("status",(msg)=>{
   document.getElementById("status").innerText = msg;
 });
 
-socket.on("typing",(msg)=>{
-  document.getElementById("typing").innerText = msg;
-
-  setTimeout(()=>{document.getElementById("typing").innerText="";},1000);
+socket.on("last seen",(data)=>{
+  document.getElementById("status").innerText =
+    "last seen at " + data.time;
 });
 
 </script>
